@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 class GetNoteUseCaseImpl(
     private val repo: NoteRepository
 ) : GetNotesUseCase {
-    override operator fun invoke(noteOrder: NoteOrder = NoteOrder.Date(OrderType.Descending)): Flow<List<Note>> {
+    override operator fun invoke(noteOrder: NoteOrder): Flow<List<Note>> {
         return repo.getNotes().map { notes ->
             when (noteOrder.orderType) {
                 is OrderType.Ascending -> {
