@@ -7,7 +7,7 @@ import com.plcoding.cleanarchitecturenoteapp.feature.note.domain.util.OrderType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class GetNoteUseCaseImpl(
+class GetNotesUseCaseImpl(
     private val repo: NoteRepository
 ) : GetNotesUseCase {
     override operator fun invoke(noteOrder: NoteOrder): Flow<List<Note>> {
