@@ -12,7 +12,7 @@ interface NoteDao {
 
     //getById and use suspend because return the final object expect
     @Query("SELECT * FROM note WHERE id =:id")
-    suspend fun getNotesById(id: Int): Note?
+    suspend fun getNoteById(id: Int): Note?
 
     //update a data that exist in dataBase
     @Insert(onConflict = OnConflictStrategy.REPLACE)
