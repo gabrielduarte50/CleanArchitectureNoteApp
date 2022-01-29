@@ -3,6 +3,7 @@ package com.plcoding.cleanarchitecturenoteapp.feature.note.presentation.add_edit
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plcoding.cleanarchitecturenoteapp.feature.note.domain.model.InvalidNoteException
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddEditNoteViewModel @Inject constructor(
-    private val noteUseCases: NoteUseCases
+    private val noteUseCases: NoteUseCases,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _noteTitle = mutableStateOf(
@@ -39,6 +41,29 @@ class AddEditNoteViewModel @Inject constructor(
     private val _eventFlow =
         MutableSharedFlow<UiEvent>() //usa qdo há uma açao que nao necessariamente é um state, como um  snackbar por exemplo
     val eventFlow = _eventFlow.asSharedFlow()
+
+    private var currentNoteId: Int? = null
+
+    init {
+        savedStateHandle.get<Int>("noteId")?.let {
+            if (it != -1) {
+                viewModelScope.launch {
+                    noteUseCases.getNote(it)?.also { note ->
+                        currentNoteId = note.id
+                        _noteTitle.value = noteTitle.value.copy(
+                            text = note.title,
+                            isHintVisible = false
+                        )
+                        _noteContent.value = noteContent.value.copy(
+                            text = note.content,
+                            isHintVisible = false
+                        )
+                        _noteColor.value = note.color
+                    }
+                }
+            }
+        }
+    }
 
     fun onEvent(event: AddEditNoteEvent) {
         when (event) {
@@ -74,11 +99,16 @@ class AddEditNoteViewModel @Inject constructor(
                                 content = noteContent.value.text,
                                 timeStamp = System.currentTimeMillis(),
                                 color = noteColor.value,
-
+                                id = currentNoteId
                             )
                         )
+                        _eventFlow.emit(UiEvent.SaveNote)
                     } catch (e: InvalidNoteException) {
-
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't save note"
+                            )
+                        )
                     }
                 }
             }
